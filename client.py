@@ -1,22 +1,35 @@
 import socket
+import sys
 
 def run_client():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(('localhost', 12345))
+
+    try:
+         client.connect(('localhost', 12345))
+    except ConnectionRefusedError:
+        print('Ошибка:сервер не запущен')
+        return
 
     while True:
-        message = input('введите сообщение для отправки:')
+        try:
+            message = input('введите сообщение для отправки:')
 
-        if not message:
-            print('пустое сообщение, введите снова')
-            continue
+            if not message:
+                continue
 
-        if message == 'exit':
-            break
+            client.send(message.encode('utf-8'))
 
-        response = client.recv(1024).decode('utf-8')
-        print(f"получено: {response}")
-    client.close()
+            if message == 'exit':
+                break
+
+            response = client.recv(1024).decode('utf-8')
+            print(f"получено: {response}")
+
+        except (ConnectionAbortedError, ConnectionResetError):
+            print('\nПрограмма разорвала установленное подключение')
+            print('process finished with exit code 0')
+
+        client.close()
 
 if __name__ == '__main__':
     run_client()
